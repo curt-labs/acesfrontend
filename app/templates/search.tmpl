@@ -1,0 +1,108 @@
+
+<form>
+	<label for="make">Make: </label>
+	<input type="text" name="make" id="make" class="find">
+	<label for="model">model: </label>
+	<input type="text" name="model" id="model" class="find">
+	<label for="year">year: </label>
+	<input type="text" name="year" id="year" class="find">
+	<label for="configAttribute">Config Attribute: </label>
+	<input type="text" name="configAttribute" id="configAttribute" class="find">
+	<label for="configAttributeType">Config Attribute Type: </label>
+	<input type="text" name="configAttributeType" id="configAttributeType" class="find">
+	<button id="clear">Clear</button>
+</form>
+
+<form>
+	<select id="makes" name="makes">
+		<option id="">--Select--</option>
+		{{range .makes}}
+			<option id="{{.Make.ID}}">{{.Make.Name}}</option>
+		{{end}}
+	</select>
+	<select id="models" name="models">
+		<option id="">--Select--</option>
+		{{range .models}}
+			<option id="{{.Model.ID}}">{{.Model.Name}}</option>
+		{{end}}
+	</select>
+</form>
+
+
+<table id="output">
+	
+
+</table>
+
+
+<script>
+
+
+$(document).on('keyup','.find',function(){
+	var minLength = 2;
+	if ($(this).attr('name')=='year'){
+		minLength = 4
+	}
+	if ($(this).val().length >= minLength){
+		clear();
+		appendHeaders();
+		findVehicles();
+	}
+	if ($(this).val().length == 0){
+		clear();
+		appendHeaders();
+		findVehicles();
+	}
+
+})
+
+$("#clear").click(function(){
+	clear();
+	$(this).closest('form').find("input[type=text], textarea").val("");//clear form
+})
+
+function clear(){
+	$("#output").empty();
+}
+
+function findVehicles(){
+	var make = $("#make").val();
+	var model = $("#model").val();
+	var year = $("#year").val();
+	var configAttribute = $("#configAttribute").val();
+	var configAttributeType = $("#configAttributeType").val();
+	var config = configAttribute+"#"+configAttributeType
+
+	var someData = {make:make, model:model,year:year, config:config};
+	$.ajax({
+            type: "POST",
+            url: "http://localhost:3000/api/params",
+            data: someData,
+            success: function(data){
+              // console.log(data);
+              if (data != null){
+              	createOutput(data);
+              }
+            },
+            dataType: 'json',
+          })
+}
+
+function createOutput(data){
+	$.each(data,function(key,value){
+		$("#output").append("<tr><td>"+value.ID+"</td><td>"+value.Year.Name+"</td><td>"+value.Make.Name+"</td><td>"+value.Model.Name+"</td></tr>");
+	})
+}
+
+function appendHeaders(){
+	$("#output").append(headers);
+}
+
+
+var headers = "<tr id='headers'><th>ID</th><th>Year</th><th>Make</th><th>Model</th></tr>'";
+
+
+
+
+
+</script>
