@@ -1,58 +1,105 @@
-
-<form>
+<!-- 
+<form method="post">
 	<label for="make">Make: </label>
 	<input type="text" name="make" id="make" class="find">
-	<label for="model">model: </label>
+	<label for="model">Model: </label>
 	<input type="text" name="model" id="model" class="find">
-	<label for="year">year: </label>
+	<label for="year">Year: </label>
 	<input type="text" name="year" id="year" class="find">
 	<label for="configAttribute">Config Attribute: </label>
 	<input type="text" name="configAttribute" id="configAttribute" class="find">
 	<label for="configAttributeType">Config Attribute Type: </label>
 	<input type="text" name="configAttributeType" id="configAttributeType" class="find">
 	<button id="clear">Clear</button>
-</form>
+</form> -->
 
-<form>
-	<select id="makes" name="makes">
-		<option id="">--Select--</option>
+<form method="post" id="dropdownForm">
+	<label for="makes">Make: </label>
+	<select id="makes" name="makes" class="dropdownFind">
+		<option id="" value="">--Select--</option>
 		{{range .makes}}
 			<option id="{{.Make.ID}}">{{.Make.Name}}</option>
 		{{end}}
 	</select>
-	<select id="models" name="models">
-		<option id="">--Select--</option>
+	<label for="models">Models: </label>
+	<select id="models" name="models" class="dropdownFind">
+		<option id="" value="">--Select--</option>
 		{{range .models}}
 			<option id="{{.Model.ID}}">{{.Model.Name}}</option>
+		{{end}}
+	</select>
+	<label for="years">Years: </label>
+	<select id="years" name="years" class="dropdownFind">
+		<option id="" value="">--Select--</option>
+		{{range .years}}
+			<option id="{{.Year.Name}}">{{.Year.Name}}</option>
+		{{end}}
+	</select>
+	<label for="configAttributeTypes">Configurations: </label>
+	<select id="configAttributeTypes" name="configAttributeTypes" class="dropdownFind">
+		<option id="" value="">--Select--</option>
+		{{range .configAttributes}}
+			<option id="{{.ID}}">{{.Name}}</option>
 		{{end}}
 	</select>
 </form>
 
 
-<table id="output">
-	
-
-</table>
+<table id="output"></table>
 
 
 <script>
-
-
-$(document).on('keyup','.find',function(){
-	var minLength = 2;
-	if ($(this).attr('name')=='year'){
-		minLength = 4
-	}
-	if ($(this).val().length >= minLength){
+//dropdown controller
+$(document).on('change','.dropdownFind',function(){
+	if ($(this).val().length >= 0){
 		clear();
 		appendHeaders();
-		findVehicles();
+		findVehiclesDropdown();
 	}
-	if ($(this).val().length == 0){
-		clear();
-		appendHeaders();
-		findVehicles();
-	}
+})
+
+
+// //input texst controller
+// $(document).on('keyup','.find',function(){
+// 	var minLength = 2;
+// 	if ($(this).attr('name')=='year'){
+// 		minLength = 4
+// 	}
+// 	if ($(this).val().length >= minLength){
+// 		clear();
+// 		appendHeaders();
+// 		findVehicles();
+// 	}
+// 	if ($(this).val().length == 0){
+// 		clear();
+// 		appendHeaders();
+// 		findVehicles();
+// 	}
+// 	// $(".find").each(function(){
+// 	// 	if(!$(this).length){
+// 	// 	clear();
+// 	// 	}
+// 	// })
+// })
+
+function updateDropdowns(vehicles){
+	console.log(vehicles);
+	$(".dropdownFind").empty();
+	$.each(vehicles, function(k,v){
+		
+		$("#makes").append("<option id='"+v.Make.ID+"'>"+v.Make.Name+"</option>");
+		$("#models").append("<option id='"+v.Model.ID+"'>"+v.Model.Name+"</option>");
+		$("#years").append("<option id='"+v.Year.Name+"'>"+v.Year.Name+"</option>");
+		$.each(v.ConfigAttributes,function(i,j){
+			$("#configAttributeTypes").append("<option id='"+j.ConfigAttributeType.ID+"'>"+j.ConfigAttributeType.Name+"</option>");
+		})
+		
+	})
+}
+
+
+$(document).on('change', '#configAttributeTypes',function(){
+	populateConfigAttributes($("option:selected",this).attr("id"));
 
 })
 
@@ -61,17 +108,36 @@ $("#clear").click(function(){
 	$(this).closest('form').find("input[type=text], textarea").val("");//clear form
 })
 
+function populateConfigAttributes(id){
+	console.log(id);
+	$.ajax({
+            type: "POST",
+            url: "http://localhost:3000/config/type",
+            data: {typeId:id},
+            success: function(data){
+              // console.log(data);
+              if (data != null){
+              	createDropdown(data);
+              } else {
+              	hideDropdown();
+              }
+            },
+            dataType: 'json',
+          })
+}
+
 function clear(){
 	$("#output").empty();
 }
 
+//input text function
 function findVehicles(){
-	var make = $("#make").val();
-	var model = $("#model").val();
+	var make = $("#make").val(); console.log(make);
+	var model = $("#model").val(); 
 	var year = $("#year").val();
 	var configAttribute = $("#configAttribute").val();
 	var configAttributeType = $("#configAttributeType").val();
-	var config = configAttribute+"#"+configAttributeType
+	var config = configAttributeType+"-"+configAttribute
 
 	var someData = {make:make, model:model,year:year, config:config};
 	$.ajax({
@@ -88,9 +154,51 @@ function findVehicles(){
           })
 }
 
+//dropdown function
+function findVehiclesDropdown(){
+	var make = $("#makes option:selected").val(); 
+	var model = $("#models").val(); 
+	var year = $("#years").val();
+	
+	if ($("#configAttribute").length && $("#configAttributeType").length){
+		var configAttribute = $("#configAttribute").val();
+		var configAttributeType = $("#configAttributeTypes").val();
+		var config = configAttributeType+"-"+configAttribute
+	}
+	
+
+	var someData = {make:make, model:model,year:year, config:config};
+	$.ajax({
+            type: "POST",
+            url: "http://localhost:3000/api/params",
+            data: someData,
+            success: function(data){
+              // console.log(data);
+              if (data != null){
+              	createOutput(data);
+              	updateDropdowns(data);
+              }
+            },
+            dataType: 'json',
+          })
+}
+
 function createOutput(data){
 	$.each(data,function(key,value){
-		$("#output").append("<tr><td>"+value.ID+"</td><td>"+value.Year.Name+"</td><td>"+value.Make.Name+"</td><td>"+value.Model.Name+"</td></tr>");
+		$("#output").append("<tr id='row"+key+"'><td>"+value.ID+"</td><td>"+value.Year.Name+"</td><td>"+value.Make.Name+"</td><td>"+value.Model.Name+"</td><td>"+value.Submodel.SubmodelName+"</td>");
+
+		var ca = value.ConfigAttributes;
+		if (ca != null && ca.length){
+			$.each(ca, function(k,v){
+				var caName = (v.Name.length) ? v.Name: "No Configurations.";
+				var caTypeName = (v.ConfigAttributeType.Name.length) ? v.ConfigAttributeType.Name : "No Configuration Types";
+				var caAcesName = (v.ConfigAttributeType.AcesType.Name.length) ? v.ConfigAttributeType.AcesType.Name : "No Aces Type";
+				// console.log(caName+" "+caTypeName+" "+caAcesName);
+				$("#row"+key).append("<td>"+caName+"</td><td>"+caTypeName+"</td><td>"+caAcesName+"</td>");
+			})
+			
+		}
+		$("#row"+key).append("</tr>");
 	})
 }
 
@@ -98,8 +206,23 @@ function appendHeaders(){
 	$("#output").append(headers);
 }
 
+function createDropdown(data){
+	$("#configAttributes").remove();
+	var output;
+	output = "<select id='configAttributes' name='configAttributes' class='dropdown'><option id='' value=''>--Select--</option>";
+	$.each(data,function(key,value){
+		output += "<option id="+value.ID+">"+value.Name+"</option>";
+	})
+	output += "</select>";
+	$("#dropdownForm").append(output);
+}
 
-var headers = "<tr id='headers'><th>ID</th><th>Year</th><th>Make</th><th>Model</th></tr>'";
+function hideDropdown(){
+	$("#configAttributes").remove();
+}
+
+
+var headers = "<tr id='headers'><th>ID</th><th>Year</th><th>Make</th><th>Model</th><th>Submodel</th></tr>'";
 
 
 

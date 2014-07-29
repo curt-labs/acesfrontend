@@ -68,12 +68,14 @@ type AcesType struct {
 	Name string
 }
 
+const APIendpoint = "http://localhost:3000"
+
 func Get(formData string) []Vehicle {
 	client := &http.Client{CheckRedirect: nil}
 
 	log.Print("FROM: ", formData)
 
-	req, err := http.NewRequest("POST", "http://localhost:3000/vehicle/params", bytes.NewBufferString(formData))
+	req, err := http.NewRequest("POST", APIendpoint+"/vehicle/params", bytes.NewBufferString(formData))
 
 	resp, err := client.Do(req)
 
@@ -98,7 +100,7 @@ func Get(formData string) []Vehicle {
 func GetAllMakes() ([]Vehicle, error) {
 	var vs []Vehicle
 	var err error
-	resp, err := http.Get("http://localhost:3000/make/all")
+	resp, err := http.Get(APIendpoint + "/make/all")
 	if err != nil {
 		log.Print(err)
 	}
@@ -115,7 +117,7 @@ func GetAllMakes() ([]Vehicle, error) {
 func GetAllModels() ([]Vehicle, error) {
 	var vs []Vehicle
 	var err error
-	resp, err := http.Get("http://localhost:3000/model/all")
+	resp, err := http.Get(APIendpoint + "/model/all")
 	if err != nil {
 		log.Print(err)
 	}
@@ -127,5 +129,36 @@ func GetAllModels() ([]Vehicle, error) {
 	err = json.Unmarshal(body, &vs)
 
 	return vs, err
+}
+func GetAllYears() ([]Vehicle, error) {
+	var vs []Vehicle
+	var err error
+	resp, err := http.Get(APIendpoint + "/year/all")
+	if err != nil {
+		log.Print(err)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	// log.Print("BODY: ", body)
+	if err != nil {
+		log.Print("Err Readalling: ", err)
+	}
+	err = json.Unmarshal(body, &vs)
 
+	return vs, err
+}
+func GetAllConfigAttributes() ([]ConfigAttributeType, error) {
+	var vs []ConfigAttributeType
+	var err error
+	resp, err := http.Get(APIendpoint + "/config/all")
+	if err != nil {
+		log.Print(err)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	// log.Print("BODY: ", body)
+	if err != nil {
+		log.Print("Err Readalling: ", err)
+	}
+	err = json.Unmarshal(body, &vs)
+
+	return vs, err
 }
