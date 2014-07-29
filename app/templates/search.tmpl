@@ -28,6 +28,13 @@
 			<option id="{{.Model.ID}}">{{.Model.Name}}</option>
 		{{end}}
 	</select>
+	<label for="submodels">Submodels: </label>
+	<select id="submodels" name="submodels" class="dropdownFind">
+		<option id="" value="">--Select--</option>
+		{{range .models}}
+			<option id="{{.Submodel.ID}}">{{.Submodel.SubmodelName}}</option>
+		{{end}}
+	</select>
 	<label for="years">Years: </label>
 	<select id="years" name="years" class="dropdownFind">
 		<option id="" value="">--Select--</option>
@@ -89,6 +96,7 @@ function updateDropdowns(vehicles){
 		
 		$("#makes").append("<option id='"+v.Make.ID+"'>"+v.Make.Name+"</option>");
 		$("#models").append("<option id='"+v.Model.ID+"'>"+v.Model.Name+"</option>");
+		$("#submodels").append("<option id='"+v.Submodel.ID+"'>"+v.Submodel.SubmodelName+"</option>");
 		$("#years").append("<option id='"+v.Year.Name+"'>"+v.Year.Name+"</option>");
 		$.each(v.ConfigAttributes,function(i,j){
 			$("#configAttributeTypes").append("<option id='"+j.ConfigAttributeType.ID+"'>"+j.ConfigAttributeType.Name+"</option>");

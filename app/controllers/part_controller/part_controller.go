@@ -20,10 +20,12 @@ func Search(rw http.ResponseWriter, req *http.Request, ren render.Render) {
 	allMakes, err := part_model.GetAllMakes()
 	allModels, err := part_model.GetAllModels()
 	allYears, err := part_model.GetAllYears()
+	allSubmodels, err := part_model.GetAllSubmodels()
 	allConfigAttributes, err := part_model.GetAllConfigAttributes()
 	data["makes"] = allMakes
 	data["models"] = allModels
 	data["years"] = allYears
+	data["submodels"] = allSubmodels
 	data["configAttributes"] = allConfigAttributes
 
 	ren.HTML(200, "search", data)

@@ -146,6 +146,22 @@ func GetAllYears() ([]Vehicle, error) {
 
 	return vs, err
 }
+func GetAllSubmodels() ([]Vehicle, error) {
+	var vs []Vehicle
+	var err error
+	resp, err := http.Get(APIendpoint + "/submodel/all")
+	if err != nil {
+		log.Print(err)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	// log.Print("BODY: ", body)
+	if err != nil {
+		log.Print("Err Readalling: ", err)
+	}
+	err = json.Unmarshal(body, &vs)
+
+	return vs, err
+}
 func GetAllConfigAttributes() ([]ConfigAttributeType, error) {
 	var vs []ConfigAttributeType
 	var err error
