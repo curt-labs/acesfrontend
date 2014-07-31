@@ -133,12 +133,13 @@ function getParts(value){
 	var output;
 	if (value.Parts != null){
 	$.each(value.Parts,function(k,v){
-		output += "<div class='part' id='"+v.ID+"'>"+v.ID+"--"+v.ShortDesc+"</div>";
+		output += "<div class='part' id='"+v.ID+"'>"+v.ID+"--"+v.ShortDesc;
 		if(v.Notes != null){
 			$.each(v.Notes,function(i,j){
 				output += "<span>"+j.Note+"</span>";
 			})
 		}
+		output += "</div>";
 	})
 	}else{
 		output = "";
