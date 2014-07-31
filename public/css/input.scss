@@ -2,11 +2,37 @@
 
 body{
 	background-color: #eee;
+	font-family:arial,sans-serif;
 }
 
+
 #output tr, td, th{
-	border: 1px solid #333;
+	border-top: 1px solid #333;
+}
+
+#output th, #detailedOutput th{
+	background-color: #ddd;
 }
 table tr,td,th{
 	padding:.4em;
+	text-align: left;
+}
+#output{
+	float:left;
+}
+
+#output, #detailedOutput{
+	padding:.6em;
+}
+
+#banner{
+	width:100%;
+	background-color:#f15922;
+	font-size:2em;
+	text-align: center;
+	padding: .4em 0 .4em 0;
+}
+.part{
+	border-bottom:1px solid black;
+	padding: .2em 0 .2em 0;
 }

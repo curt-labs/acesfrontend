@@ -1,27 +1,17 @@
-<input id="make">
-<input id="year">
+<label for="yearMake">Enter Year and/or Make:</label>
+<input id="yearMake">
 <button id="find">FIND</button>
-
-<div id="menu" class="menu"></div>
 
 <div id="output"></div>
 
 <div id="detailedOutput"></div>
-<style>
-#output{
-	float:left;
-	margin:2em;
-	padding:1em;
-}
-</style>
+
 <script>
-
-$("#make").autocomplete({source:[{{range .makes}}{{.Make.Name}},{{end}}]},{minLength:2});
-$("#year").autocomplete({source:[{{range .years}}{{.Year.Name}},{{end}}]},{minLength:2});
-
 $(document).on('click','#find',function(){
-	findVehicles();
+	var inputVal = $("#yearMake").val();
+	parseInput(inputVal);
 })
+
 $(document).on('click','.getVehicle',function(element){
 	var makeId =$(this).find(':nth-child(2)').html();
 	var modelId = $(this).find(':nth-child(3)').html();
@@ -29,14 +19,60 @@ $(document).on('click','.getVehicle',function(element){
 	getVehicleOptions(makeId,modelId,yearName);
 })
 
-function findVehicles(){
-	var make = $("#make").val();
-	var year = $("#year").val();
+$(document).on('click','.part',function(){
+	var partID = $(this).attr("id");
+	displayPart(partID);
+})
 
+function displayPart(partID){
+	var someData = {partID:partID};
+	$.ajax({
+            type: "POST",
+            url: "http://localhost:3000/api/part",
+            data: someData,
+            success: function(data){
+              if (data != null){
+              	displayPartDetails(data);
+              }
+            },
+            dataType: 'json',
+          })
+}
+
+function displayPartDetails(data){
+	$("#detailedOutput").empty();
+	$("#detailedOutput").append("<p>Part #:"+data.ID+"--"+data.ShortDesc+"...plus lots of details...</p>");
+	// console.log(data);
+}
+
+function parseInput(inputVal){
+	var yearRegex = inputVal.match(/[1][9][0-9][0-9]|[2][0][0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9]|[0-9]/);
+	if (yearRegex != null){
+		year = yearRegex[0];//just grab the first one, you lazy punk.
+		
+		if (year.length == 2){//add 19 of 20 to two-digit years
+			var today = new Date();
+			var y = today.getFullYear();
+			var diff = y-2000;
+			if (year <= diff) {
+				year = "20"+year;
+			}else{
+				year="19"+year;
+			}
+		}
+	}else{
+		year='';
+	}
+	var make = inputVal.replace(yearRegex,"");
+	make = $.trim(make);
+	findVehicles(make,year); //make that vehicles table
+}
+
+function findVehicles(make,year){
 	var someData = {make:make,year:year};
 	$.ajax({
             type: "POST",
-            url: "http://localhost:3000/vehicle/params",
+            url: "http://localhost:3000/api/base",
             data: someData,
             success: function(data){
               if (data != null){
@@ -48,7 +84,6 @@ function findVehicles(){
 }
 
 function getVehicleOptions(makeId,modelId,yearName){
-	console.log(makeId,modelId,yearName);
 	someData = {make:makeId,model:modelId,year:yearName};
 	$.ajax({
             type: "POST",
@@ -57,7 +92,6 @@ function getVehicleOptions(makeId,modelId,yearName){
             success: function(data){
               	console.log(data);
               	createDetailedOutput(data);
-              
             },
             dataType: 'json',
           })
@@ -65,7 +99,7 @@ function getVehicleOptions(makeId,modelId,yearName){
 
 function createOutput(data){
 	$("#output").empty();
-	appendHeaders();
+	appendBaseVehicleHeader();
 	$.each(data, function(key,value){
 		$("#output").append("<tr class='getVehicle'><td class='year' id="+value.Year.Name+">"+value.Year.Name+"</td><td class='make' id="+value.Make.ID+">"+value.Make.Name+"</td><td class='model' id="+value.Model.ID+">"+value.Model.Name+"</td>");
 	})
@@ -73,6 +107,7 @@ function createOutput(data){
 
 function createDetailedOutput(data){
 	$("#detailedOutput").empty();
+	appendVehicleOptionsHeader();
 	$.each(data, function(key,value){
 		var parts = getParts(value);
 		var configs = getConfigs(value);
@@ -98,10 +133,12 @@ function getParts(value){
 	var output;
 	if (value.Parts != null){
 	$.each(value.Parts,function(k,v){
-		output += "<div>"+v.ID+"--"+v.ShortDesc+"</div>";
-		$.each(v.Notes,function(i,j){
-			output += "<span>"+j.Note+"</span>";
-		})
+		output += "<div class='part' id='"+v.ID+"'>"+v.ID+"--"+v.ShortDesc+"</div>";
+		if(v.Notes != null){
+			$.each(v.Notes,function(i,j){
+				output += "<span>"+j.Note+"</span>";
+			})
+		}
 	})
 	}else{
 		output = "";
@@ -109,11 +146,17 @@ function getParts(value){
 	return output;
 }
 
-function appendHeaders(){
-	$("#output").append(headers);
+function appendBaseVehicleHeader(){
+	$("#output").append(baseVehicleHeader);
 }
 
-var headers = "<tr id='headers'><th>Year</th><th>Make</th><th>Model</th></tr>'";
+var baseVehicleHeader = "<tr id='headers'><th>Year</th><th>Make</th><th>Model</th></tr>'";
+
+function appendVehicleOptionsHeader(){
+	$("#detailedOutput").append(vehicleOptionsHeader);
+}
+
+var vehicleOptionsHeader = "<tr id='headers'><th>Year</th><th>Make</th><th>Model</th><th>Subodel</th><th>Configurations</th><th>Parts</th></tr>'";
 
 
 </script>

@@ -67,11 +67,11 @@ func Search2(rw http.ResponseWriter, req *http.Request, ren render.Render) {
 	if err != nil {
 		log.Print(err)
 	}
-	allMakes, err := part_model.GetAllMakes()
-	allYears, err := part_model.GetAllYears()
+	// allMakes, err := part_model.GetAllMakes()
+	// allYears, err := part_model.GetAllYears()
 
-	data["makes"] = allMakes
-	data["years"] = allYears
+	// data["makes"] = allMakes
+	// data["years"] = allYears
 
 	ren.HTML(200, "vehicleSearch", data)
 }
