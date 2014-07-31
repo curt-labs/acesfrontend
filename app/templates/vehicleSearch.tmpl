@@ -1,0 +1,119 @@
+<input id="make">
+<input id="year">
+<button id="find">FIND</button>
+
+<div id="menu" class="menu"></div>
+
+<div id="output"></div>
+
+<div id="detailedOutput"></div>
+<style>
+#output{
+	float:left;
+	margin:2em;
+	padding:1em;
+}
+</style>
+<script>
+
+$("#make").autocomplete({source:[{{range .makes}}{{.Make.Name}},{{end}}]},{minLength:2});
+$("#year").autocomplete({source:[{{range .years}}{{.Year.Name}},{{end}}]},{minLength:2});
+
+$(document).on('click','#find',function(){
+	findVehicles();
+})
+$(document).on('click','.getVehicle',function(element){
+	var makeId =$(this).find(':nth-child(2)').html();
+	var modelId = $(this).find(':nth-child(3)').html();
+	var yearName = $(this).find(':nth-child(1)').html();
+	getVehicleOptions(makeId,modelId,yearName);
+})
+
+function findVehicles(){
+	var make = $("#make").val();
+	var year = $("#year").val();
+
+	var someData = {make:make,year:year};
+	$.ajax({
+            type: "POST",
+            url: "http://localhost:3000/vehicle/params",
+            data: someData,
+            success: function(data){
+              if (data != null){
+              	createOutput(data);
+              }
+            },
+            dataType: 'json',
+          })
+}
+
+function getVehicleOptions(makeId,modelId,yearName){
+	console.log(makeId,modelId,yearName);
+	someData = {make:makeId,model:modelId,year:yearName};
+	$.ajax({
+            type: "POST",
+            url: "http://localhost:3000/api/params",
+            data: someData,
+            success: function(data){
+              	console.log(data);
+              	createDetailedOutput(data);
+              
+            },
+            dataType: 'json',
+          })
+}
+
+function createOutput(data){
+	$("#output").empty();
+	appendHeaders();
+	$.each(data, function(key,value){
+		$("#output").append("<tr class='getVehicle'><td class='year' id="+value.Year.Name+">"+value.Year.Name+"</td><td class='make' id="+value.Make.ID+">"+value.Make.Name+"</td><td class='model' id="+value.Model.ID+">"+value.Model.Name+"</td>");
+	})
+}
+
+function createDetailedOutput(data){
+	$("#detailedOutput").empty();
+	$.each(data, function(key,value){
+		var parts = getParts(value);
+		var configs = getConfigs(value);
+
+		$("#detailedOutput").append("<tr class='parts'><td>"+value.Year.Name+"</td><td>"+value.Make.Name+"</td><td>"+value.Model.Name+"</td><td>"+value.Submodel.SubmodelName+"</td><td>"+configs+"</td><td>"+parts+"</td>");
+
+	})
+}
+
+function getConfigs(value){
+	var output;
+	if (value.ConfigAttributes != null){
+	$.each(value.ConfigAttributes,function(k,v){
+		output += "<div>"+v.Name+"--"+v.ConfigAttributeType.Name+"</div>";
+	})
+	}else{
+		output = "";
+	}
+	return output;
+}
+
+function getParts(value){
+	var output;
+	if (value.Parts != null){
+	$.each(value.Parts,function(k,v){
+		output += "<div>"+v.ID+"--"+v.ShortDesc+"</div>";
+		$.each(v.Notes,function(i,j){
+			output += "<span>"+j.Note+"</span>";
+		})
+	})
+	}else{
+		output = "";
+	}
+	return output;
+}
+
+function appendHeaders(){
+	$("#output").append(headers);
+}
+
+var headers = "<tr id='headers'><th>Year</th><th>Make</th><th>Model</th></tr>'";
+
+
+</script>

@@ -59,3 +59,19 @@ func Get(rw http.ResponseWriter, req *http.Request, ren render.Render) {
 
 	ren.HTML(200, "test", data)
 }
+
+func Search2(rw http.ResponseWriter, req *http.Request, ren render.Render) {
+	data := make(map[string]interface{})
+	var err error
+	rw.Header().Add("Access-Control-Allow-Origin", "*")
+	if err != nil {
+		log.Print(err)
+	}
+	allMakes, err := part_model.GetAllMakes()
+	allYears, err := part_model.GetAllYears()
+
+	data["makes"] = allMakes
+	data["years"] = allYears
+
+	ren.HTML(200, "vehicleSearch", data)
+}

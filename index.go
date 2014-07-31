@@ -43,6 +43,11 @@ func main() {
 		r.Post("", part_controller.Get)
 	})
 
+	m.Group("(?i)/findVehicle", func(r martini.Router) {
+		r.Get("", part_controller.Search2)
+		r.Post("", part_controller.Get)
+	})
+
 	log.Printf("Starting server on 127.0.0.1:%s\n", *listenAddr)
 	log.Fatal(http.ListenAndServe(":"+*listenAddr, m))
 
